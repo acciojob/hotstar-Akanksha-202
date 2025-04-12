@@ -26,6 +26,9 @@ public class SubscriptionService {
     public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
 
         //Save The subscription Object into the Db and return the total Amount that user has to pay
+        System.out.println("userId = " + subscriptionEntryDto.getUserId());
+        System.out.println("noOfScreensRequired = " + subscriptionEntryDto.getNoOfScreensRequired());
+        System.out.println("subscriptionType = " + subscriptionEntryDto.getSubscriptionType());
 
         // Validation: subscriptionType should not be null
         if(subscriptionEntryDto.getSubscriptionType() == null){
@@ -42,7 +45,7 @@ public class SubscriptionService {
         User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
         subscription.setUser(user);
 
-
+        System.out.println("Reached calculation phase.");
         if(subscription.getSubscriptionType()==SubscriptionType.BASIC){
             subscription.setTotalAmountPaid(500 + (200*(subscription.getNoOfScreensSubscribed())));
         }
@@ -66,7 +69,7 @@ public class SubscriptionService {
 
             Optional<Subscription> subscriptionOptional = subscriptionRepository.findByUserId(userId);
 
-            if(subscriptionOptional.isEmpty()) throw new RuntimeException("Invalid Id");
+            if(subscriptionOptional.isEmpty()) return null;
 
             Subscription savedSubscription = subscriptionOptional.get();
             SubscriptionType subscriptionType = savedSubscription.getSubscriptionType();
@@ -101,6 +104,9 @@ public class SubscriptionService {
         //We need to find out total Revenue of hotstar : from all the subscriptions combined
         //Hint is to use findAll function from the SubscriptionDb
         List<Subscription>subscriptionList = subscriptionRepository.findAll();
+        if (subscriptionList.isEmpty()) {
+            return null;  // return null if no subscriptions
+        }
         int totalAmount = 0;
         for(Subscription subscription : subscriptionList){
             totalAmount+=subscription.getTotalAmountPaid();
