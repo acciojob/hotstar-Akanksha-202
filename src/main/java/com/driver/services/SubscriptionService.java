@@ -43,8 +43,8 @@ public class SubscriptionService {
             subscription.setTotalAmountPaid(1000 + (350 * (subscription.getNoOfScreensSubscribed())));
         }
 
-        subscriptionRepository.save(subscription);
-        if(subscriptionRepository.findById(subscription.getId()).isPresent()) return subscription.getTotalAmountPaid();
+        Subscription savedSubscription = subscriptionRepository.save(subscription);
+        if(savedSubscription != null && savedSubscription.getId() > 0) return subscription.getTotalAmountPaid();
         return null;
     }
 
@@ -54,7 +54,7 @@ public class SubscriptionService {
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
 
-            Optional<Subscription> subscriptionOptional = subscriptionRepository.findById(userId);
+            Optional<Subscription> subscriptionOptional = subscriptionRepository.findByUserUserId(userId);
 
             if(subscriptionOptional.isEmpty()) throw new RuntimeException("Invalid Id");
 
@@ -95,7 +95,7 @@ public class SubscriptionService {
         for(Subscription subscription : subscriptionList){
             totalAmount+=subscription.getTotalAmountPaid();
         }
-        if(totalAmount > 0) return totalAmount;
+        if(totalAmount >= 0) return totalAmount;
         return null;
     }
 
