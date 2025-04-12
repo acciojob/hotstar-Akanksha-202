@@ -11,7 +11,6 @@ import com.driver.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +53,7 @@ public class SubscriptionService {
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
 
-            Optional<Subscription> subscriptionOptional = subscriptionRepository.findByUserUserId(userId);
+            Optional<Subscription> subscriptionOptional = subscriptionRepository.findByUserId(userId);
 
             if(subscriptionOptional.isEmpty()) throw new RuntimeException("Invalid Id");
 
