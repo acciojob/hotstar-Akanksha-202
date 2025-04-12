@@ -27,6 +27,17 @@ public class SubscriptionService {
 
         //Save The subscription Object into the Db and return the total Amount that user has to pay
 
+        // Validation: subscriptionType should not be null
+        if(subscriptionEntryDto.getSubscriptionType() == null){
+            return null;
+        }
+
+        // Validation: noOfScreensSubscribed should be positive
+        if(subscriptionEntryDto.getNoOfScreensRequired() <= 0){
+            return null;
+        }
+
+
         Subscription subscription = SubscriptionConvertor.subscriptionReqToSubscription(subscriptionEntryDto);
         User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
         subscription.setUser(user);
@@ -43,7 +54,7 @@ public class SubscriptionService {
         }
 
         Subscription savedSubscription = subscriptionRepository.save(subscription);
-        if(savedSubscription != null && savedSubscription.getId() > 0) return subscription.getTotalAmountPaid();
+        if(savedSubscription != null && savedSubscription.getId() > 0) return savedSubscription.getTotalAmountPaid();
         return null;
     }
 
