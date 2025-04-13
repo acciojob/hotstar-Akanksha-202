@@ -25,11 +25,6 @@ public class SubscriptionService {
 
     public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
 
-        //Save The subscription Object into the Db and return the total Amount that user has to pay
-        System.out.println("userId = " + subscriptionEntryDto.getUserId());
-        System.out.println("noOfScreensRequired = " + subscriptionEntryDto.getNoOfScreensRequired());
-        System.out.println("subscriptionType = " + subscriptionEntryDto.getSubscriptionType());
-
         // Validation: subscriptionType should not be null
         if(subscriptionEntryDto.getSubscriptionType() == null){
             return null;
@@ -40,12 +35,13 @@ public class SubscriptionService {
             return null;
         }
 
+        //Validation: User already has a subscription
+        if(subscriptionRepository.findByUserId(subscriptionEntryDto.getUserId()).isPresent()) return null;
 
         Subscription subscription = SubscriptionConvertor.subscriptionReqToSubscription(subscriptionEntryDto);
         User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
         subscription.setUser(user);
 
-        System.out.println("Reached calculation phase.");
         if(subscription.getSubscriptionType()==SubscriptionType.BASIC){
             subscription.setTotalAmountPaid(500 + (200*(subscription.getNoOfScreensSubscribed())));
         }
@@ -66,6 +62,7 @@ public class SubscriptionService {
         //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
         //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
         //update the subscription in the repository
+            System.out.println("Starting upgradeSubscription for userId: " + userId);
 
             Optional<Subscription> subscriptionOptional = subscriptionRepository.findByUserId(userId);
 
@@ -74,12 +71,18 @@ public class SubscriptionService {
             Subscription savedSubscription = subscriptionOptional.get();
             SubscriptionType subscriptionType = savedSubscription.getSubscriptionType();
 
+            System.out.println("Current subscriptionType: " + subscriptionType);
+            System.out.println("No. of screens subscribed: " + savedSubscription.getNoOfScreensSubscribed());
+            System.out.println("Old total amount paid: " + savedSubscription.getTotalAmountPaid());
+
             int newTotalAmount = 0;
 
             if(subscriptionType == SubscriptionType.BASIC){
                 savedSubscription.setSubscriptionType(SubscriptionType.PRO);
                 newTotalAmount = 800 + (250 * (savedSubscription.getNoOfScreensSubscribed()));
                 int differenceAmount = newTotalAmount - savedSubscription.getTotalAmountPaid();
+                System.out.println("Upgraded from BASIC to PRO. New Total: " + newTotalAmount + ", Difference to Pay: " + differenceAmount);
+
                 savedSubscription.setTotalAmountPaid(newTotalAmount);
                 subscriptionRepository.save(savedSubscription);
                 return differenceAmount;
@@ -88,15 +91,18 @@ public class SubscriptionService {
                 savedSubscription.setSubscriptionType(SubscriptionType.ELITE);
                 newTotalAmount =1000 + (350 * (savedSubscription.getNoOfScreensSubscribed()));
                 int differenceAmount = newTotalAmount - savedSubscription.getTotalAmountPaid();
+                System.out.println("Upgraded from PRO to ELITE. New Total: " + newTotalAmount + ", Difference to Pay: " + differenceAmount);
+
                 savedSubscription.setTotalAmountPaid(newTotalAmount);
                 subscriptionRepository.save(savedSubscription);
                 return differenceAmount;
             }
             else if(subscriptionType == SubscriptionType.ELITE){
-                throw new RuntimeException("Already the best Subscription");
+                throw new Exception("Already the best Subscription");
             }
 
-        return null;
+            System.out.println("Reached end of upgradeSubscription method without upgrading.");
+            return null;
     }
 
     public Integer calculateTotalRevenueOfHotstar(){
