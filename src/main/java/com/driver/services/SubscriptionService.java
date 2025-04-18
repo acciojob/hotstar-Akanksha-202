@@ -39,7 +39,7 @@ public class SubscriptionService {
         if(subscriptionRepository.findByUserId(subscriptionEntryDto.getUserId()).isPresent()) return null;
 
         Subscription subscription = SubscriptionConvertor.subscriptionReqToSubscription(subscriptionEntryDto);
-        User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).orElse(null);
         subscription.setUser(user);
 
         if(subscription.getSubscriptionType()==SubscriptionType.BASIC){
